@@ -4,7 +4,7 @@
 #include <pcl/common/common.h>
 #include <Eigen/Dense>
 #include <Eigen/Core>
-
+#include <Eigen/Geometry>
 struct landmark{
     Eigen::Matrix4d pose;
     pcl::PointCloud<pcl::PointXYZI> points;
