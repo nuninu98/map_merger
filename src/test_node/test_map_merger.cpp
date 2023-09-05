@@ -1,6 +1,5 @@
 #include <ros/ros.h>
 #include <map_merger/api_class/map_merger.h>
-#include <pcl/filters/voxel_grid.h>
 using namespace std;
 
 int main(int argc, char** argv){

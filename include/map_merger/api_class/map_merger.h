@@ -10,6 +10,8 @@
 #include <pcl/kdtree/kdtree_flann.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <pcl_conversions/pcl_conversions.h>
+#include <pcl/filters/voxel_grid.h>
+
 class MapMerger{
     private:
         double loop_detection_threshold_;
@@ -17,6 +19,7 @@ class MapMerger{
         gtsam::ISAM2 isam_;
         vector<landmark> initial_query_map_, initial_target_map_;
         pcl::GeneralizedIterativeClosestPoint<pcl::PointXYZI, pcl::PointXYZI> gicp_;
+        pcl::VoxelGrid<pcl::PointXYZI> voxel_grid_;
     public:
         MapMerger();
 
