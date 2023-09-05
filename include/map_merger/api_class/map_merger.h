@@ -8,7 +8,8 @@
 #include <gtsam/slam/BetweenFactor.h>
 #include <pcl/registration/gicp.h>
 #include <pcl/kdtree/kdtree_flann.h>
-
+#include <sensor_msgs/PointCloud2.h>
+#include <pcl_conversions/pcl_conversions.h>
 class MapMerger{
     private:
         double loop_detection_threshold_;

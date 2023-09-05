@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-#include <filesystem>
+#include <experimental/filesystem>
 #include <map_merger/data_types/landmark.h>
 using namespace std;
 
@@ -15,7 +15,8 @@ class MapParser{
 
         ~MapParser(); 
 
-        bool generateLandmark(const string& file_path, vector<landmark>& map_output);
+        bool generateLandmark(const string& map_folder, vector<landmark>& map_output);
+
 };
 
 #endif
