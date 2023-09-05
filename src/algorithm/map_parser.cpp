@@ -10,7 +10,7 @@ MapParser::~MapParser(){
 
 }
 
-bool MapParser::generateLandmark(const string& file_path, landmark& landmark){
+bool MapParser::generateLandmark(const string& file_path, vector<landmark>& map_output){
     ifstream bin(file_path, ios::in | ios::binary);
     if(!bin.good()){
         cout<<"No Such file: "<<file_path<<endl;
@@ -28,6 +28,7 @@ bool MapParser::generateLandmark(const string& file_path, landmark& landmark){
         bin.read((char*)&point.y, sizeof(double));
         bin.read((char*)&point.z, sizeof(double));
         bin.read((char*)&point.intensity, sizeof(double));
+        cloud.push_back(point);
     }
     bin.close();
     return true;
