@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(map_merger)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++17)
+add_compile_options(-std=c++14)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -12,6 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   roscpp
   sensor_msgs
+  pcl_conversions
+  pcl_ros
 )
 find_package(PCL 1.8 REQUIRED)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
@@ -144,6 +146,7 @@ add_dependencies(map_merger_algorithm_lib ${${PROJECT_NAME}_EXPORTED_TARGETS} ${
 target_link_libraries(map_merger_algorithm_lib
   ${catkin_LIBRARIES}
   map_merger_data_type_lib
+  stdc++fs
 )
 
 add_library(map_merger_api_class_lib
@@ -153,13 +156,18 @@ add_dependencies(map_merger_api_class_lib ${${PROJECT_NAME}_EXPORTED_TARGETS} ${
 target_link_libraries(map_merger_api_class_lib
   ${catkin_LIBRARIES}
   map_merger_algorithm_lib
+  gtsam
 )
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/map_merger_node.cpp)
-
+add_executable(test_map_merger src/test_node/test_map_merger.cpp)
+add_dependencies(test_map_merger ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(test_map_merger
+  ${catkin_LIBRARIES}
+  map_merger_api_class_lib
+)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
