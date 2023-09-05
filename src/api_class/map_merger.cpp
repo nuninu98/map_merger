@@ -1,6 +1,6 @@
 #include <map_merger/api_class/map_merger.h>
 
-MapMerger::MapMerger(){
+MapMerger::MapMerger(): loop_detection_threshold_(10.0){
    
 }
 
@@ -8,35 +8,72 @@ MapMerger::~MapMerger(){
     
 }
 
-bool MapMerger::addMap(const string& map_path){
-    vector<landmark> landmarks;
-    if(!map_parser_.generateLandmark(map_path, landmarks)){
+bool MapMerger::addQueryMap(const string& map_path){
+    if(!map_parser_.generateLandmark(map_path, initial_query_map_)){
         return false;
     }
-
-    initial_maps_.push_back(landmarks);
     return true;
 }
 
-bool MapMerger::match(size_t query_map_id, size_t target_map_id, const Eigen::Matrix4d& initial_guess){
-    if(initial_maps_.size() <= query_map_id || initial_maps_.size() <= target_map_id){
-        cout<<"Map ID exceeds the added maps"<<endl;
+bool MapMerger::addTargetMap(const string& map_path){
+    if(!map_parser_.generateLandmark(map_path, initial_target_map_)){
         return false;
     }
+    return true;
+}
+
+bool MapMerger::match(const Eigen::Matrix4d& initial_guess){
     gtsam::Values initial_landmark_poses;
-    for(size_t i = 0; i < initial_maps_[target_map_id].size(); i++){
-        initial_landmark_poses.insert(i, gtsam::Pose3(initial_maps_[target_map_id][i].pose));
+
+    // Adding target landmarks
+    for(size_t i = 0; i < initial_target_map_.size(); i++){
+        initial_landmark_poses.insert(i, gtsam::Pose3(initial_target_map_[i].pose));
+    }
+    
+    // Adding query landmarks
+    for(size_t i = 0; i < initial_query_map_.size(); i++){
+        Eigen::Matrix4d query_pose = initial_guess * initial_query_map_[i].pose;
+        initial_landmark_poses.insert(i + initial_target_map_.size(), gtsam::Pose3(query_pose));
     }
 
-    for(size_t i = 0; i < initial_maps_[query_map_id].size(); i++){
-        Eigen::Matrix4d query_pose = initial_guess * initial_maps_[query_map_id][i].pose;
-        initial_landmark_poses.insert(i + initial_maps_[target_map_id].size(), gtsam::Pose3(query_pose));
+    // Noise factors
+    gtsam::NonlinearFactorGraph graph;
+    gtsam::noiseModel::Diagonal::shared_ptr prior_noise =
+    gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(1.0e-5, 1.0e-5, 1.0e-5));
+    graph.add(gtsam::PriorFactor<gtsam::Pose3>(0, gtsam::Pose3(Eigen::Matrix4d::Identity()), prior_noise));
+    gtsam::noiseModel::Diagonal::shared_ptr intra_noise =
+        gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(1.0e-3, 1.0e-3, 1.0e-3));
+
+    // Setting intra constraint between target map landmarks
+    for(size_t id = 0; id < initial_target_map_.size() - 1; id++){
+        Eigen::Matrix4d pose_gap = initial_target_map_[id].pose.inverse() * initial_target_map_[id + 1].pose;   
+        graph.add(gtsam::BetweenFactor<gtsam::Pose3>(id, id + 1, gtsam::Pose3(pose_gap), intra_noise));
     }
+
+    //Setting intra constraint between query map landmarks
+    for(size_t id = 0; id < initial_query_map_.size()- 1; id++){
+        size_t graph_id = id + initial_target_map_.size();
+        Eigen::Matrix4d pose_gap = initial_query_map_[id].pose.inverse() * initial_query_map_[id + 1].pose;
+        graph.add(gtsam::BetweenFactor<gtsam::Pose3>(graph_id, graph_id + 1, gtsam::Pose3(pose_gap), intra_noise));
+    }
+
+    //============Search for inter constraint================
+    pcl::KdTreeFLANN<pcl::PointXYZ> target_landmark_kdtree;
+    pcl::PointCloud<pcl::PointXYZ>::Ptr target_node_poses(new pcl::PointCloud<pcl::PointXYZ>);
+    for(auto elem : initial_target_map_){
+        pcl::PointXYZ pose(elem.pose(0, 3), elem.pose(1, 3), elem.pose(2, 3));
+        target_node_poses->push_back(pose);
+    }
+    target_landmark_kdtree.setInputCloud(target_node_poses);
+
+    
+    //=======================================================
+    
     return true;
 }
 
 void MapMerger::clear(){
-    graph_.resize(0);
     isam_.clear();
-    initial_maps_.clear();
+    initial_query_map_.clear();
+    initial_target_map_.clear();
 }
