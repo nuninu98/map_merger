@@ -29,7 +29,7 @@ class MapMerger{
 
         bool addTargetMap(const string& map_path);
 
-        bool match(const Eigen::Matrix4d& initial_guess);
+        bool match(const Eigen::Matrix4d& initial_guess, vector<landmark>& map_output);
 
         void clear();
 };

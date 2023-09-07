@@ -6,6 +6,8 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /query1
+        - /target1
         - /PointCloud21
       Splitter Ratio: 0.5
     Tree Height: 746
@@ -26,7 +28,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: PointCloud2
+    SyncSource: query
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -61,6 +63,62 @@ Visualization Manager:
       Axis: Z
       Channel Name: intensity
       Class: rviz/PointCloud2
+      Color: 0; 255; 0
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: query
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 2
+      Size (m): 0.20000000298023224
+      Style: Flat Squares
+      Topic: /query_map
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: target
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 2
+      Size (m): 0.20000000298023224
+      Style: Flat Squares
+      Topic: /target_map
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
       Color: 255; 255; 255
       Color Transformer: Intensity
       Decay Time: 0
@@ -72,10 +130,10 @@ Visualization Manager:
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
-      Size (Pixels): 2
-      Size (m): 0.10000000149011612
-      Style: Points
-      Topic: /parsed_map
+      Size (Pixels): 3
+      Size (m): 0.20000000298023224
+      Style: Flat Squares
+      Topic: /merged_map
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -108,7 +166,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 316.18865966796875
+      Distance: 34.58574676513672
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -116,17 +174,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 8.026387214660645
-        Y: 36.91594314575195
-        Z: 32.60355758666992
+        X: -18.06917381286621
+        Y: 2.6380252838134766
+        Z: -2.882307529449463
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7947971820831299
+      Pitch: 1.5497963428497314
       Target Frame: <Fixed Frame>
-      Yaw: 5.04992151260376
+      Yaw: 0.9080907106399536
     Saved: ~
 Window Geometry:
   Displays:
