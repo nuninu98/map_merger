@@ -1,6 +1,6 @@
 #include <map_merger/api_class/map_merger.h>
 
-MapMerger::MapMerger(): loop_detection_threshold_(10.0){
+MapMerger::MapMerger(): loop_detection_threshold_(100.0){
     voxel_grid_.setLeafSize(1.0, 1.0, 1.0);
 }
 
@@ -22,7 +22,7 @@ bool MapMerger::addTargetMap(const string& map_path){
     return true;
 }
 
-bool MapMerger::match(const Eigen::Matrix4d& initial_guess, vector<landmark>& map_output){
+bool MapMerger::match(const Eigen::Matrix4d& initial_guess, vector<landmark>& map_output, string map_folder){
     gtsam::Values initial_landmark_poses;
     if(initial_query_map_.empty() || initial_target_map_.empty()){
         cout<<"Please add query and target first"<<endl;
@@ -48,7 +48,7 @@ bool MapMerger::match(const Eigen::Matrix4d& initial_guess, vector<landmark>& ma
         gtsam::noiseModel::Diagonal::Sigmas((gtsam::Vector(6) << gtsam::Vector3::Constant(1.0e-1), gtsam::Vector3::Constant(1.0e-1)).finished());
 
     gtsam::noiseModel::Diagonal::shared_ptr inter_noise =
-        gtsam::noiseModel::Diagonal::Sigmas((gtsam::Vector(6) << gtsam::Vector3::Constant(1.0e-1), gtsam::Vector3::Constant(1.0e-1)).finished());
+        gtsam::noiseModel::Diagonal::Sigmas((gtsam::Vector(6) << gtsam::Vector3::Constant(1.0e-4), gtsam::Vector3::Constant(1.0e-4)).finished());
 
     graph.add(gtsam::PriorFactor<gtsam::Pose3>(0, initial_landmark_poses.at<gtsam::Pose3>(0), prior_noise));
     // Setting intra constraint between target map landmarks
@@ -73,7 +73,6 @@ bool MapMerger::match(const Eigen::Matrix4d& initial_guess, vector<landmark>& ma
     }
     target_landmark_kdtree.setInputCloud(target_node_poses);
     cout<<"INTER LOOP FINDING"<<endl;
-
     for(size_t i = 0; i < initial_query_map_.size(); i++){
         cout<<"Processing NODE "<<i<<"/"<<initial_query_map_.size()<<endl;
 
@@ -119,6 +118,48 @@ bool MapMerger::match(const Eigen::Matrix4d& initial_guess, vector<landmark>& ma
         gtsam::Pose3 pose = estimated.at<gtsam::Pose3>(i + initial_target_map_.size());
         landmark lm(pose.matrix(), initial_query_map_[i].points);
         map_output.push_back(lm);
+    }
+
+    if(map_folder != ""){
+        cout<<"Saving map folder in: "<<map_folder<<endl;
+        experimental::filesystem::create_directories(map_folder+"/pointClouds");
+        ofstream pose_txt(map_folder + "/poses.txt");
+        for(size_t i = 0; i < estimated.size(); i++){
+            gtsam::Pose3 lm_pose = estimated.at<gtsam::Pose3>(i);
+            Eigen::Matrix4d lm_pose_se3 = lm_pose.matrix().cast<double>();
+            Eigen::Quaterniond q(lm_pose_se3.block<3, 3>(0, 0));
+            pose_txt<<i<<" "<<lm_pose_se3(0, 3)<<" "<<lm_pose_se3(1, 3)<<" "<<lm_pose_se3(2, 3)<<" "
+            <<q.x()<<" "<<q.y()<<" "<<q.z()<<" "<<q.w()<<endl;
+        }
+        pose_txt.close();
+
+        for(size_t i = 0; i < initial_target_map_.size(); i++){
+            // gtsam::Pose3 pose = estimated.at<gtsam::Pose3>(i);
+            // landmark lm(pose.matrix(), initial_target_map_[i].points);
+            // map_output.push_back(lm);
+            ofstream bin_file(map_folder + "/pointClouds/"+to_string(i)+".bin", ios::out|ios::binary);
+            for(size_t j = 0; j < initial_target_map_[i].points.size(); j++){
+                bin_file.write((char*)&initial_target_map_[i].points[j].x, sizeof(float));
+                bin_file.write((char*)&initial_target_map_[i].points[j].y, sizeof(float));
+                bin_file.write((char*)&initial_target_map_[i].points[j].z, sizeof(float));
+                bin_file.write((char*)&initial_target_map_[i].points[j].intensity, sizeof(float));
+            }
+            bin_file.close(); 
+        }
+
+        for(size_t i = 0; i < initial_query_map_.size(); i++){
+            // gtsam::Pose3 pose = estimated.at<gtsam::Pose3>(i + initial_target_map_.size());
+            // landmark lm(pose.matrix(), initial_query_map_[i].points);
+            // map_output.push_back(lm);
+            ofstream bin_file(map_folder + "/pointClouds/"+to_string(i + initial_target_map_.size())+".bin", ios::out|ios::binary);
+            for(size_t j = 0; j < initial_query_map_[i].points.size(); j++){
+                bin_file.write((char*)&initial_query_map_[i].points[j].x, sizeof(float));
+                bin_file.write((char*)&initial_query_map_[i].points[j].y, sizeof(float));
+                bin_file.write((char*)&initial_query_map_[i].points[j].z, sizeof(float));
+                bin_file.write((char*)&initial_query_map_[i].points[j].intensity, sizeof(float));
+            }
+            bin_file.close(); 
+        }
     }
     //=======================================================
     

@@ -10,7 +10,7 @@ int main(int argc, char** argv){
     Eigen::Matrix4d pq = Eigen::Matrix4d::Identity();
     Eigen::Matrix4d pt = Eigen::Matrix4d::Identity();
     pq(0, 3) = -2.53;
-    pq(1, 3) = 5.42;
+    pq(1, 3) = 3.42;
     pq(0, 0) = cos(-0.74);
     pq(0, 1) = -sin(-0.74);
     pq(1, 0) = sin(-0.74);
